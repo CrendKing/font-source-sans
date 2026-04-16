@@ -6,6 +6,7 @@ Build script for Variable Fonts (VF)
 
 from pathlib import Path
 import argparse
+import os
 import subprocess
 import shutil
 
@@ -44,7 +45,7 @@ def remove_source_otfs(slope):
         source_directory = ROOT_DIR.joinpath(
             f'{slope}', 'Poles', f'pole_{i}')
         for otf_to_delete in source_directory.glob("*.otf"):
-            subprocess.call(['rm', otf_to_delete])
+            os.remove(otf_to_delete)
 
 
 def build_vf(args, slope):
@@ -106,17 +107,19 @@ def build_vf(args, slope):
         )
 
     if not args.hinted:
+        tb_cff2 = tmp_dir / '.tb_cff2'
+
         # at the moment, we don’t subroutinize the hinted fonts.
         # extract and subroutinize the CFF2 table
         subprocess.call(
-            ['tx', '-cff2', '+S', '+b', '-std', output_otf, '/tmp/.tb_cff2'],
+            ['tx', '-cff2', '+S', '+b', '-std', output_otf, tb_cff2],
             stdout=STDOUT,
             stderr=STDERR
         )
 
         # replace CFF2 table with subroutinized version
         subprocess.call(
-            ['sfntedit', '-a', 'CFF2=/tmp/.tb_cff2', output_otf],
+            ['sfntedit', '-a', f'CFF2={tb_cff2}', output_otf],
             stdout=STDOUT,
             stderr=STDERR
         )
@@ -132,9 +135,9 @@ def build_vf(args, slope):
 
     # use DSIG, name, OS/2, hhea, post, and STAT tables from OTFs
     tables_from_otf = (
-        'DSIG=/tmp/.tb_DSIG,name=/tmp/.tb_name,OS/2=/tmp/.tb_os2,'
-        'hhea=/tmp/.tb_hhea,post=/tmp/.tb_post,STAT=/tmp/.tb_STAT,'
-        'fvar=/tmp/.tb_fvar')
+        f'DSIG={tmp_dir / '.tb_DSIG'},name={tmp_dir / '.tb_name'},OS/2={tmp_dir / '.tb_os2'},'
+        f'hhea={tmp_dir / '.tb_hhea'},post={tmp_dir / '.tb_post'},STAT={tmp_dir / '.tb_STAT'},'
+        f'fvar={tmp_dir / '.tb_fvar'}')
 
     subprocess.call([
         'sfntedit', '-x', tables_from_otf, output_otf])
@@ -143,8 +146,8 @@ def build_vf(args, slope):
 
     # use cmap, GDEF, GPOS, and GSUB tables from TTFs
     tables_from_ttf = (
-        'cmap=/tmp/.tb_cmap,GDEF=/tmp/.tb_GDEF,'
-        'GPOS=/tmp/.tb_GPOS,GSUB=/tmp/.tb_GSUB')
+        f'cmap={tmp_dir / '.tb_cmap'},GDEF={tmp_dir / '.tb_GDEF'},'
+        f'GPOS={tmp_dir / '.tb_GPOS'},GSUB={tmp_dir / '.tb_GSUB'}')
 
     subprocess.call([
         'sfntedit', '-x', tables_from_ttf, output_ttf])
@@ -172,12 +175,17 @@ if __name__ == '__main__':
         output_dir_name = 'VF'
 
     vf_dir = ROOT_DIR.joinpath('target', output_dir_name)
+    tmp_dir = vf_dir / 'tmp'
 
     # clean existing target directory
     if vf_dir.exists():
-        subprocess.call(['rm', '-rf', vf_dir])
+        shutil.rmtree(vf_dir)
     # build target directory
     vf_dir.mkdir(parents=True)
+    tmp_dir.mkdir()
 
     for slope in slopes:
         build_vf(args, slope)
+
+    for sfntedit_tmp in ROOT_DIR.glob('sfntedit.*.tmp'):
+        sfntedit_tmp.unlink()

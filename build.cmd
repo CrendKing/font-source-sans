@@ -43,7 +43,7 @@ goto :eof
 :: %2 - Weight
 :build_font
 call makeotf -f "%~dp0\%1\Instances\%2\font.ufo" -r -o "%TARGET_OTF_PATH%\%FAMILY%-%2.otf"
-call makeotf -f "%~dp0\%1\Instances\%2\font.ttf" -r -o "%TARGET_TTF_PATH%\%FAMILY%-%2.ttf" -ff "%~dp0\%1\Instances\%2\font.ufo\features.fea"
+call makeotf -f "%~dp0\%1\Instances\%2\font.ufo" -r -o "%TARGET_TTF_PATH%\%FAMILY%-%2.ttf" -ff "%~dp0\%1\Instances\%2\font.ufo\features.fea"
 goto :eof
 
 :error_makeotf_not_found

@@ -1,0 +1,9 @@
+[project]
+name = 'Source-Sans-3'
+version = '1'
+requires-python = '>=3.13'
+dependencies = [
+    'afdko',
+    'fontmake',
+    'typing-extensions',
+]
