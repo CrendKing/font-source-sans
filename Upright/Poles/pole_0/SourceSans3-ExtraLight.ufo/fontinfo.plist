@@ -157,7 +157,7 @@
 		<key>trademark</key>
 		<string>Source is a trademark of Adobe in the United States and/or other countries.</string>
 		<key>unitsPerEm</key>
-		<integer>1000</integer>
+		<integer>950</integer>
 		<key>versionMajor</key>
 		<integer>3</integer>
 		<key>versionMinor</key>
